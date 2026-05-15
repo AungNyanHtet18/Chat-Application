@@ -27,6 +27,6 @@ public class UserService {
 	}
 	
 	public List<User> findConnectedUser(){
-	   return userRepository.findAllByStatus(Status.OFFLINE);
+	   return userRepository.findAllByStatus(Status.ONLINE);
 	}
 }
