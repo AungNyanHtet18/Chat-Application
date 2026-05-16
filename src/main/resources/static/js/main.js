@@ -6,7 +6,6 @@ const userNameForm = document.getElementById('usernameForm')
 const messageForm = document.getElementById('messageForm')
 const chatArea = document.getElementById('chat-messages')
 const messageInput = document.getElementById('message')
-
 const logout = document.getElementById('logout')
 
 let stompClient = null;
@@ -29,12 +28,11 @@ function connect(event) {
 	}
 	
 	 event.preventDefault()
-
 }
 
 function onConnected() {
-	stompClient.subscribe(`/user/${nickName}/queue/messages`, onMessageReceived)
-    stompClient.subscribe(`/user/public`, onMessageReceived)
+	stompClient.subscribe(`/topic/${nickName}/queue/messages`, onMessageReceived)
+    stompClient.subscribe(`/topic/public`, onMessageReceived)
 
 	// register the connected user
 	stompClient.send('/app/user.addUser',
@@ -72,7 +70,7 @@ async function findAndDisplayConnectedUsers() {
 function appendUserElement(user, connectedUsersList) {
 	  const listIem = document.createElement('li')
 	  listIem.classList.add('user-item')
-	  listIem.id = user.nickName
+	  listIem.id = user.nickName //adding nickname for each user item
 	  
 	  const userImage = document.createElement('img')
 	  userImage.src = '../image/user_icon.png'
@@ -166,10 +164,39 @@ function sendMessage(event) {
 
 }
 
-function onMessageReceived() {
-	 
+async function onMessageReceived(payload) {
+	await findAndDisplayConnectedUsers()
+	const message = JSON.parse(payload.body)
+
+	if(selectedUserId && selectedUserId == message.senderId) {
+		 displayMessage(message.senderId, message.content)	
+		 chatArea.scrollTop = chatArea.scrollHeight
+	}
+
+	if(selectedUserId) {
+		 document.querySelector(`#${selectedUserId}`).classList.add('active') //finding selected user element by its id
+	}else { 
+		 messageForm.classList.add('hidden')
+	}
+
+	const notifiedUser = document.querySelector(`#${message.senderId}`)
+
+	if(notifiedUser && !notifiedUser.classList.contains('active')) {
+		const nbrMsg = notifiedUser.querySelector('.nbr-msg')
+		nbrMsg.classList.remove('hidden') 
+		nbrMsg.textContent = '';
+	}
+}
+
+function onLogout() {
+    stompClient.send("/app/user.disConnectUser",
+        {},
+        JSON.stringify({nickName: nickName, fullName: fullName, status: 'OFFLINE'})
+    );
+    window.location.reload();
 }
 
 userNameForm.addEventListener('submit',connect, true)
 messageForm.addEventListener('submit', sendMessage, true)
-
+logout.addEventListener('click', onLogout, true);
+window.onbeforeunload = () => onLogout();

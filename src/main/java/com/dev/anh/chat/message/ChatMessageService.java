@@ -1,6 +1,6 @@
 package com.dev.anh.chat.message;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import com.dev.anh.chat.room.ChatRoomService;
@@ -32,7 +32,7 @@ public class ChatMessageService {
 								recipientId, 
 								false);
 		
-		 return chatId.map(chatRepository::findByChatId).orElse(new ArrayList<>());
+		 return chatId.map(chatRepository::findByChatId).orElse(Collections.emptyList());
 	}
 	
 }
